@@ -14,11 +14,11 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/", handlers.NewHello(l))
+	mux.Handle("/", handlers.NewProduct(l))
 
-	mux.Handle("/goodbye", handlers.NewGoodbye(l))
+	// mux.Handle("/goodbye", handlers.NewGoodbye(l))
 
-	mux.Handle("/products", handlers.NewProduct(l))
+	// mux.Handle("/products", handlers.NewProduct(l))
 
 	server := &http.Server{
 		Addr:         ":3030",
