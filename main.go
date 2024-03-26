@@ -7,22 +7,35 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	l := log.New(os.Stdout, "REST-API ", log.LstdFlags)
 
-	mux := http.NewServeMux()
+	// mux := http.NewServeMux()
 
-	mux.Handle("/", handlers.NewProduct(l))
+	// mux.Handle("/", handlers.NewProduct(l))
 
-	// mux.Handle("/goodbye", handlers.NewGoodbye(l))
+	ph := handlers.NewProduct(l)
 
-	// mux.Handle("/products", handlers.NewProduct(l))
+	r := mux.NewRouter()
+
+	getRouter := r.Methods("GET").Subrouter()
+	getRouter.HandleFunc("/", ph.GetProducts)
+
+	putRouter := r.Methods("PUT").Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	putRouter.Use(handlers.ValidateProductMiddleWare)
+
+	postRouter := r.Methods("POST").Subrouter()
+	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.Use(handlers.ValidateProductMiddleWare)
 
 	server := &http.Server{
 		Addr:         ":3030",
-		Handler:      mux,
+		Handler:      r,
 		IdleTimeout:  30 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
@@ -36,7 +49,9 @@ func main() {
 	}()
 
 	signalChan := make(chan os.Signal)
+
 	signal.Notify(signalChan, os.Interrupt)
+
 	signal.Notify(signalChan, os.Kill)
 
 	sig := <-signalChan
