@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"microservice/data"
+	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
 	"net/http"
 )
 

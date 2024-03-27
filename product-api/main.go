@@ -2,11 +2,12 @@ package main
 
 import (
 	"log"
-	"microservice/handlers"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/sgbaotran/Nascita-coffee-shop/product-api/handlers"
 
 	"github.com/gorilla/mux"
 )

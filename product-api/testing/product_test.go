@@ -1,7 +1,7 @@
 package testing
 
 import (
-	"microservice/data"
+	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
 	"testing"
 )
 
