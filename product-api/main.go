@@ -7,19 +7,31 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/sgbaotran/Nascita-coffee-shop/product-api/handlers"
-
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
+	protos "github.com/sgbaotran/Nascita-coffee-shop/currency/protos/currency"
+	"github.com/sgbaotran/Nascita-coffee-shop/product-api/handlers"
+	"google.golang.org/grpc"
 )
 
+// @Summary Get user by ID
+// @Description Get user information by ID
 func main() {
 	l := log.New(os.Stdout, "REST-API ", log.LstdFlags)
+
+	conn, err := grpc.Dial("localhost:9092")
+	defer conn.Close()
+	if err != nil {
+		l.Fatal(err)
+	}
 
 	// mux := http.NewServeMux()
 
 	// mux.Handle("/", handlers.NewProduct(l))
 
-	ph := handlers.NewProduct(l)
+	cc := protos.NewCurrencyClient(conn)
+
+	ph := handlers.NewProduct(l, cc)
 
 	r := mux.NewRouter()
 
@@ -37,6 +49,12 @@ func main() {
 	deleteRouter := r.Methods(http.MethodDelete).Subrouter()
 	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.DeleteProduct)
 	deleteRouter.Use(handlers.ValidateProductMiddleWare)
+
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(opts, nil)
+
+	getRouter.Handle("/docs", sh)
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	server := &http.Server{
 		Addr:         ":3030",

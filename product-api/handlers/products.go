@@ -1,59 +1,32 @@
-// Package classification of Product API
-// Documentation for product API
-//
-//	Schemes: http
-//	BasePath: /
-//	Version: 1.0.0
-//	Consumes:
-//	- application/json
-//	Produces:
-//	- application/json
-//
-// swagger: meta
 package handlers
 
 import (
-	"context"
-	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
+	protos "github.com/sgbaotran/Nascita-coffee-shop/currency/protos/currency"
 )
 
+// NOTE: Types defined here are purely for documentation purposes
+// these types are not used by any of the handers
+
+// Generic error message returned as a string
+// swagger:response errorResponse
+type errorResponseWrapper struct {
+	// Description of the error
+	// in: body
+	Body int
+}
+
+// Products handler for getting and updating products
 type Product struct {
-	l *log.Logger
+	l  *log.Logger
+	cc protos.CurrencyClient
 }
 
-func NewProduct(l *log.Logger) *Product {
-	return &Product{l}
+// NewProducts returns a new products handler with the given logger
+func NewProduct(l *log.Logger, cc protos.CurrencyClient) *Product {
+	return &Product{l, cc}
 }
 
+// KeyProduct is a key used for the Product object in the context
 type KeyProduct struct{}
-
-func ValidateProductMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		var prod data.Product
-
-		err := prod.FromJSON(r.Body)
-
-		if err != nil {
-			http.Error(rw, "POST: Something went wrong (failed to serialize json) ("+(err.Error())+" :(", http.StatusBadRequest)
-			return
-		}
-
-		err = prod.Validate()
-		if err != nil {
-			http.Error(rw, "POST: Something went wrong (validation fail) ("+(err.Error())+" :(", http.StatusBadRequest)
-		}
-
-		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
-
-		r = r.WithContext(ctx)
-
-		fmt.Println("In Middleware: ")
-
-		next.ServeHTTP(rw, r)
-	})
-
-}
