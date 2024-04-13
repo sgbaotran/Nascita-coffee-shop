@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/sgbaotran/Nascita-coffee-shop/currency/data"
 	protos "github.com/sgbaotran/Nascita-coffee-shop/currency/protos/currency"
 	"github.com/sgbaotran/Nascita-coffee-shop/currency/server"
 
@@ -17,7 +18,9 @@ func main() {
 
 	gs := grpc.NewServer()
 
-	cs := server.NewServer(log)
+	er, _ := data.NewExchangeRate(log)
+
+	cs := server.NewServer(log, er)
 
 	protos.RegisterCurrencyServer(gs, cs)
 

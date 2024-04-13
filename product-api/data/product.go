@@ -1,9 +1,7 @@
 package data
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"regexp"
 	"time"
 
@@ -47,18 +45,17 @@ func GetProducts() Products {
 	return products
 }
 
+func GetProduct(id int) (*Product, error) {
+
+	for _, product := range products {
+		if id == product.ID {
+			return product, nil
+		}
+	}
+	return nil, fmt.Errorf("Product cannot be found")
+}
+
 type Products []*Product
-
-func (p *Products) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(p)
-}
-
-func (p *Product) FromJSON(r io.Reader) error {
-	d := json.NewDecoder(r)
-
-	return d.Decode(p)
-}
 
 func validateSKU(fl validator.FieldLevel) bool {
 
@@ -100,3 +97,5 @@ func UpdateProduct(id int, p *Product) error {
 	products[ind] = p
 	return nil
 }
+
+var ErrProductNotFound = fmt.Errorf("Product not found")

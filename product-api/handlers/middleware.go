@@ -8,13 +8,12 @@ import (
 	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
 )
 
-
 // ErrInvalidProductPath is an error message when the product path is not valid
 func ValidateProductMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		var prod data.Product
 
-		err := prod.FromJSON(r.Body)
+		err := data.FromJSON(prod, r.Body)
 
 		if err != nil {
 			http.Error(rw, "POST: Something went wrong (failed to serialize json) ("+(err.Error())+" :(", http.StatusBadRequest)

@@ -14,20 +14,17 @@ import (
 	"google.golang.org/grpc"
 )
 
-// @Summary Get user by ID
-// @Description Get user information by ID
 func main() {
 	l := log.New(os.Stdout, "REST-API ", log.LstdFlags)
 
-	conn, err := grpc.Dial("localhost:9092")
+	conn, err := grpc.Dial("localhost:9092", grpc.WithInsecure())
 	defer conn.Close()
 	if err != nil {
 		l.Fatal(err)
 	}
 
-	// mux := http.NewServeMux()
-
-	// mux.Handle("/", handlers.NewProduct(l))
+	/* mux := http.NewServeMux()
+	mux.Handle("/", handlers.NewProduct(l))*/
 
 	cc := protos.NewCurrencyClient(conn)
 
@@ -37,6 +34,7 @@ func main() {
 
 	getRouter := r.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter.HandleFunc("/{id:[0-9]+}", ph.GetProduct)
 
 	putRouter := r.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 
 	protos "github.com/sgbaotran/Nascita-coffee-shop/currency/protos/currency"
@@ -30,3 +31,10 @@ func NewProduct(l *log.Logger, cc protos.CurrencyClient) *Product {
 
 // KeyProduct is a key used for the Product object in the context
 type KeyProduct struct{}
+
+var ErrProductNotFound = fmt.Errorf("Product not found")
+
+// GenericError is a generic error message returned by a server
+type GenericError struct {
+	Message string `json:"message"`
+}
