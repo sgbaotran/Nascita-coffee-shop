@@ -18,7 +18,7 @@ import (
 //  422: errorValidation
 
 // Update handles PUT requests to update products
-func (p *Product) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -30,11 +30,11 @@ func (p *Product) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 
 	prod := r.Context().Value(KeyProduct{}).(data.Product)
 
-	err = data.UpdateProduct(id, &prod)
+	err = p.productDB.UpdateProduct(id, &prod)
 	if err != nil {
 		http.Error(rw, "PUT: Something went wrong ("+err.Error()+") :(", http.StatusBadRequest)
 		return
 	}
-	p.l.Println("Updated products: ", prod, err)
+	p.l.Info("Updated products: ", prod, err)
 
 }

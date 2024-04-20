@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
 )
 
@@ -17,24 +15,26 @@ import (
 //  501: errorResponse
 
 // Delete handles DELETE requests and removes items from the database
-func (p *Product) DeleteProduct(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) DeleteProduct(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Add("Content-Type", "application/json")
+	id := getProductID(r)
 
-	vars := mux.Vars(r)
+	err := p.productDB.DeleteProduct(id)
+	if err == data.ErrProductNotFound {
+		p.l.Error("[ERROR]:[] deleting record id does not exist")
 
-	id, err := strconv.Atoi(vars["id"])
-
-	if err != nil {
-		http.Error(rw, "DELETE: Something went wrong (cannot find product) ("+err.Error()+") :(", http.StatusBadRequest)
+		rw.WriteHeader(http.StatusNotFound)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 
-	prod := r.Context().Value(KeyProduct{}).(data.Product)
-
-	err = data.UpdateProduct(id, &prod)
 	if err != nil {
-		http.Error(rw, "PUT: Something went wrong ("+err.Error()+") :(", http.StatusBadRequest)
+		p.l.Error("[ERROR] deleting record", err)
+
+		rw.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
-	p.l.Println("Updated products: ", prod, err)
 
+	rw.WriteHeader(http.StatusNoContent)
 }

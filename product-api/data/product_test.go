@@ -1,15 +1,14 @@
-package testing
+package data
 
 import (
-	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
 	"testing"
 )
 
 func TestValidationFunctionality(t *testing.T) {
-	p := data.Product{
-		Name: "Bao Cao Su durex",
+	p := Product{
+		Name:  "Macbook Pro 14",
 		Price: 22.0,
-		SKU: "a-a-a",
+		SKU:   "a-a-a",
 	}
 
 	err := p.Validate()
@@ -18,5 +17,3 @@ func TestValidationFunctionality(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-

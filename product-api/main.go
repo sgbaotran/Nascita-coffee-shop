@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -9,18 +8,22 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-hclog"
 	protos "github.com/sgbaotran/Nascita-coffee-shop/currency/protos/currency"
+	"github.com/sgbaotran/Nascita-coffee-shop/product-api/data"
 	"github.com/sgbaotran/Nascita-coffee-shop/product-api/handlers"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	l := log.New(os.Stdout, "REST-API ", log.LstdFlags)
-
+	// l := log.New(os.Stdout, "REST-API ", log.LstdFlags)
+	log := hclog.Default()
 	conn, err := grpc.Dial("localhost:9092", grpc.WithInsecure())
 	defer conn.Close()
+
 	if err != nil {
-		l.Fatal(err)
+		log.Error("Unable to generate rates", "error", err)
+		os.Exit(1)
 	}
 
 	/* mux := http.NewServeMux()
@@ -28,13 +31,18 @@ func main() {
 
 	cc := protos.NewCurrencyClient(conn)
 
-	ph := handlers.NewProduct(l, cc)
+	pdb := data.NewProductsSB(cc, log)
+
+	ph := handlers.NewProducts(cc, log, pdb)
 
 	r := mux.NewRouter()
 
 	getRouter := r.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter.HandleFunc("/", ph.GetProducts).Queries("currency", "{[a-zA-Z]{3}}")
+	
 	getRouter.HandleFunc("/{id:[0-9]+}", ph.GetProduct)
+	getRouter.HandleFunc("/{id:[0-9]+}", ph.GetProduct).Queries("currency", "{[a-zA-Z]{3}}")
 
 	putRouter := r.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
@@ -65,9 +73,10 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			l.Fatal(err)
+			log.Error("Unable to start server", "error", err)
 		}
 	}()
+	log.Info("[STARTING]: Product-API Server Ready")
 
 	signalChan := make(chan os.Signal)
 
@@ -76,6 +85,6 @@ func main() {
 	signal.Notify(signalChan, os.Kill)
 
 	sig := <-signalChan
-	l.Println("Somebody turned off", sig)
+	log.Info("Somebody turned off", sig)
 
 }

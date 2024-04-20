@@ -15,12 +15,12 @@ import (
 //  501: errorResponse
 
 // Create handles POST requests to add new products
-func (p *Product) AddProduct(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 
 	prod := r.Context().Value(KeyProduct{}).(data.Product)
 
-	data.AddProduct(&prod)
+	p.productDB.AddProduct(&prod)
 
-	p.l.Println("Added products: ", prod)
+	p.l.Info("Added products: ", prod)
 
 }

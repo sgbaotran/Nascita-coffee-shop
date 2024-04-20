@@ -9,7 +9,7 @@ import (
 
 func Test(t *testing.T) {
 	l := hclog.Default()
-	ex, err := NewExchangeRate(l)
+	ex, err := NewExchangeRates(l)
 
 	if err != nil {
 		t.Fatal(err)
@@ -20,6 +20,6 @@ func Test(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("%v",ex.rate)
+	fmt.Printf("%v", ex.rates)
 
 }
