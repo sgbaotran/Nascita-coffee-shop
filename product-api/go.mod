@@ -6,7 +6,7 @@ require (
 	github.com/go-openapi/runtime v0.28.0
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/gorilla/mux v1.8.1
-	github.com/sgbaotran/Nascita-coffee-shop/currency v0.0.0-20240413190239-95b3398f72d7
+	github.com/sgbaotran/Nascita-coffee-shop/currency v0.0.0-20240420003031-b897d6295fbf
 	google.golang.org/grpc v1.63.2
 )
 

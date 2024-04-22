@@ -12,12 +12,16 @@ import (
 )
 
 type ProductsDB struct {
-	cc protos.CurrencyClient
-	l  hclog.Logger
+	cc     protos.CurrencyClient
+	client protos.Currency_SubscribeRateClient
+	l      hclog.Logger
+	rates  map[string]float64
 }
 
 func NewProductsSB(cc protos.CurrencyClient, l hclog.Logger) *ProductsDB {
-	return &ProductsDB{cc, l}
+	pb := &ProductsDB{cc, nil, l, map[string]float64{}}
+	go pb.handleUpdates()
+	return pb
 }
 
 // GetProducts returns the list of products.
@@ -39,6 +43,24 @@ func (pdb *ProductsDB) GetProducts(currency string) (Products, error) {
 	}
 
 	return new_prods, err
+}
+
+func (pdb *ProductsDB) handleUpdates() {
+	client, err := pdb.cc.SubscribeRate(context.Background())
+
+	if err != nil {
+		pdb.l.Error("Unable to subcribe")
+	}
+	pdb.client = client
+	for {
+		rr, err := client.Recv()
+		if err != nil {
+			pdb.l.Error("Unable to receive message 	")
+			return
+		}
+		pdb.rates[rr.Destination.String()] = rr.Rate
+
+	}
 }
 
 // GetProduct returns a product by its ID.
@@ -142,15 +164,24 @@ var products = []*Product{
 func (pdb *ProductsDB) GetExchangeRate(destination string) (float64, error) {
 	destination = strings.ToUpper(destination)
 
+	if r, ok := pdb.rates[destination]; ok {
+		return r, nil
+	}
+
 	rr := &protos.RateRequest{
 		Base:        protos.Currencies(protos.Currencies_CAD),
 		Destination: protos.Currencies(protos.Currencies_value[destination]),
 	}
 
 	resp, err := pdb.cc.GetRate(context.Background(), rr)
+
 	if err != nil {
 		return 0, err
 	}
+
+	pdb.rates[destination] = resp.Rate
+
+	pdb.client.Send(rr)
 
 	return resp.Rate, nil
 }

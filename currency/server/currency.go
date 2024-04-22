@@ -36,6 +36,7 @@ func (c *Currency) handleUpdates() {
 				if err != nil {
 					c.log.Error("Unable to get rate: ", v.GetBase())
 				}
+
 				err = key.Send(&protos.RateResponse{Base: v.GetBase(), Destination: v.GetDestination(), Rate: new_rate})
 
 			}
@@ -47,8 +48,11 @@ func (c *Currency) handleUpdates() {
 // GetRate implements the CurrencyServer GetRate method and returns the currency exchange rate
 // for the two given currencies.
 func (c *Currency) GetRate(ctx context.Context, req *protos.RateRequest) (*protos.RateResponse, error) {
+
 	c.log.Info("Handle Request for GetRate, base: ", req.GetBase(), ", destination: ", req.Destination)
+
 	rate, err := c.rates.GetRates(req.Base.String(), req.Destination.String())
+
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +66,7 @@ func (c *Currency) SubscribeRate(src protos.Currency_SubscribeRateServer) error 
 
 		if err == io.EOF {
 			c.log.Info("Client disconnected")
+			delete(c.subscriptions, src)
 			break
 		}
 		if err != nil {
