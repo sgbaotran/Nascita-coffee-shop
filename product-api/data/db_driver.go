@@ -7,6 +7,8 @@ import (
 	"time"
 
 	protos "github.com/sgbaotran/Nascita-coffee-shop/currency/protos/currency"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/hashicorp/go-hclog"
 )
@@ -174,9 +176,19 @@ func (pdb *ProductsDB) GetExchangeRate(destination string) (float64, error) {
 	}
 
 	resp, err := pdb.cc.GetRate(context.Background(), rr)
-
 	if err != nil {
-		return 0, err
+		if s, ok := status.FromError(err); ok {
+			md := s.Details()[0]
+
+			i, _ := md.(*protos.RateRequest)
+
+			if s.Code() == codes.InvalidArgument {
+				return -1, fmt.Errorf("Unable to get rate, destination and base currencies cannot be the same Base: %s, Destination: %s", i.Base.String(), i.Destination.String())
+			}
+
+			return -1, fmt.Errorf("Unable to get rate, destination and base currencies cannot be the same Base: %s, Destination: %s", i.Base.String(), i.Destination.String())
+		}
+		return -1, err
 	}
 
 	pdb.rates[destination] = resp.Rate
